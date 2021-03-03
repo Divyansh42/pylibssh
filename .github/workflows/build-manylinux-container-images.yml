@@ -83,15 +83,15 @@ jobs:
     steps:
     - name: Fetch the repo src
       uses: actions/checkout@v2
-    # - name: >-
-    #     Set up QEMU ${{ matrix.IMAGE.QEMU_ARCH }} arch emulation
-    #     with Podman
-    #   if: matrix.IMAGE.QEMU_ARCH && true || false
-    #   run: >-
-    #     sudo podman run
-    #     --rm --privileged
-    #     multiarch/qemu-user-static
-    #     --reset -p yes
+    - name: >-
+        Set up QEMU ${{ matrix.IMAGE.QEMU_ARCH }} arch emulation
+        with Podman
+      if: matrix.IMAGE.QEMU_ARCH && true || false
+      run: >-
+        sudo podman run
+        --rm --privileged
+        multiarch/qemu-user-static
+        --reset -p yes
     - name: Build the image with Buildah
       id: build-image
       uses: redhat-actions/buildah-build@v2
