@@ -11,7 +11,7 @@ on:
     - build-scripts/manylinux-container-image/**
   push:
     branches:
-    - devel
+    - test
     paths:
     - .github/workflows/build-manylinux-container-images.yml
     - build-scripts/manylinux-container-image/**
@@ -83,15 +83,15 @@ jobs:
     steps:
     - name: Fetch the repo src
       uses: actions/checkout@v2
-    - name: >-
-        Set up QEMU ${{ matrix.IMAGE.QEMU_ARCH }} arch emulation
-        with Podman
-      if: matrix.IMAGE.QEMU_ARCH && true || false
-      run: >-
-        sudo podman run
-        --rm --privileged
-        multiarch/qemu-user-static
-        --reset -p yes
+    # - name: >-
+    #     Set up QEMU ${{ matrix.IMAGE.QEMU_ARCH }} arch emulation
+    #     with Podman
+    #   if: matrix.IMAGE.QEMU_ARCH && true || false
+    #   run: >-
+    #     sudo podman run
+    #     --rm --privileged
+    #     multiarch/qemu-user-static
+    #     --reset -p yes
     - name: Build the image with Buildah
       id: build-image
       uses: redhat-actions/buildah-build@v2
@@ -103,27 +103,22 @@ jobs:
         context: build-scripts/manylinux-container-image/
         oci: true  # Should be alright because we don't publish to Docker Hub
         build-args: RELEASE=${{ env.PYPA_MANYLINUX_TAG }}
-    - name: Push to GitHub Container Registry
-      if: >-
-        (github.event_name == 'push' || github.event_name == 'schedule')
-        && github.ref == format(
-            'refs/heads/{0}', github.event.repository.default_branch
-        )
-      id: push-to-ghcr
+    - name: Push to Quay
+      id: push-to-quay
       uses: redhat-actions/push-to-registry@v2
       with:
         image: ${{ steps.build-image.outputs.image }}
         tags: ${{ steps.build-image.outputs.tags }}
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GHCR_TOKEN }}
-    - name: Log the upload result
-      if: >-
-        (github.event_name == 'push' || github.event_name == 'schedule')
-        && github.ref == format(
-            'refs/heads/{0}', github.event.repository.default_branch
-        )
-      run: >-
-        echo
-        'New image has been pushed to
-        ${{ steps.push-to-ghcr.outputs.registry-paths }}'
+        registry: quay.io
+        username: divyansh42
+        password: ${{ secrets.REGISTRY_PASSWORD }}
+    # - name: Log the upload result
+    #   if: >-
+    #     (github.event_name == 'push' || github.event_name == 'schedule')
+    #     && github.ref == format(
+    #         'refs/heads/{0}', github.event.repository.default_branch
+    #     )
+    #   run: >-
+    #     echo
+    #     'New image has been pushed to
+    #     ${{ steps.push-to-ghcr.outputs.registry-paths }}'
